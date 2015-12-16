@@ -73,11 +73,29 @@ img {
 <p><strong>Assignment</strong> This assignment will be described in multiple parts. You will need to write a report that answers the questions detailed below. Ultimately, you will need to complete the entire assignment in a single R markdown document that can be processed by knitr and be transformed into an HTML file.</p>
 <p>Throughout your report make sure you always include the code that you used to generate the output you present. When writing code chunks in the R markdown document, always use echo = TRUE so that someone else will be able to read the code. This assignment will be evaluated via peer assessment so it is essential that your peer evaluators be able to review the code for your analysis.</p>
 <p><strong>Loading and preprocessing the data</strong></p>
-<pre class="r"><code>require(dplyr)
-require(ggplot2)
-require(data.table) 
-
-if(!file.exists(&quot;repdata-data-activity.zip&quot;)) {
+<pre class="r"><code>require(dplyr)</code></pre>
+<pre><code>## Loading required package: dplyr
+## 
+## Attaching package: 'dplyr'
+## 
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>require(ggplot2)</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre class="r"><code>require(data.table) </code></pre>
+<pre><code>## Loading required package: data.table
+## 
+## Attaching package: 'data.table'
+## 
+## The following objects are masked from 'package:dplyr':
+## 
+##     between, last</code></pre>
+<pre class="r"><code>if(!file.exists(&quot;repdata-data-activity.zip&quot;)) {
   url &lt;- &quot;http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip&quot;
   download.file(url, &quot;repdata-data-activity.zip&quot;, mode=&quot;wb&quot;)
   file &lt;- unzip(&quot;repdata-data-activity.zip&quot;)}
