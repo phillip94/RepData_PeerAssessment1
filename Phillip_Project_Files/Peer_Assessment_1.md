@@ -1,6 +1,4 @@
-# Reproducible Research - Peer Assessment 1
-Phillip  
-December 15, 2015  
+# Reproducible Research: Peer Assessment 1
 **Introduction**
 It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the “quantified self” movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
 This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
@@ -19,7 +17,7 @@ This assignment will be described in multiple parts. You will need to write a re
 
 Throughout your report make sure you always include the code that you used to generate the output you present. When writing code chunks in the R markdown document, always use echo = TRUE so that someone else will be able to read the code. This assignment will be evaluated via peer assessment so it is essential that your peer evaluators be able to review the code for your analysis.
 
-**Loading and preprocessing the data**
+## Loading and preprocessing the data 
 
 
 ```r
@@ -156,7 +154,8 @@ barplot(data2$steps)
 
 ![](Peer_Assessment_1_files/figure-html/unnamed-chunk-3-1.png) 
 
-**What is the mean number of steps taken per day?**
+## What is mean total number of steps taken per day?
+
 To determine the mean number of steps per day the dataset is grouped by days with NA values removed, then the mean and median are taken from this dataset.
 
 ```r
@@ -208,7 +207,8 @@ mean1 - median1
 ## [1] 1
 ```
 
-**What is the average daily activity pattern?**
+## What is the average daily activity pattern?
+
 Below is a time series plot showing 5-minute interval on the x-axis with labels every hour and the average number of steps taken on the y-axis.
 
 ```r
@@ -266,7 +266,8 @@ timeTotal %>%
 ## 2      840 195.9245
 ```
 
-**Imputing missing values**
+## Imputing missing values
+
 This dataset includes a number of days/intervals where there are missing values (coded as NA). The presence of this missing days may introduce bias into some of the calculations or summaries of the data, so lets replace the missing values in the datset and compare it to our prevouis statistics to determine its impact.
 
 There is a total of 2304 intervals which are missing values in the data sets.
@@ -348,7 +349,8 @@ data.frame(labels, means, medians)
 ## 3    Difference 0.15%   1.17%
 ```
 
-**Is there differences in activity patterns between weekdays and weekends?**
+## Are there differences in activity patterns between weekdays and weekends?
+
 To determine the difference a new factor variable in the dataset is created with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 
 ```r
@@ -377,25 +379,3 @@ print(s)
 ```
 
 ![](Peer_Assessment_1_files/figure-html/unnamed-chunk-16-1.png) 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
