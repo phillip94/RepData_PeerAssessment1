@@ -30,7 +30,7 @@ require(data.table)
 
 if(!file.exists("repdata-data-activity.zip")) {
   temp <- tempfile()
-  download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", temp)
+  download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", temp, method="curl")
   file <- unzip(temp)
   unlink(temp)}
   file <- unzip("repdata-data-activity.zip")
@@ -40,7 +40,7 @@ data <- activity
 
 ```
 Explore
-```{r}
+```{r message=TRUE}
 names(data)
 head(data)
 str(data)
