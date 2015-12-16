@@ -19,6 +19,7 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 
 **Assignment**
 This assignment will be described in multiple parts. You will need to write a report that answers the questions detailed below. Ultimately, you will need to complete the entire assignment in a single R markdown document that can be processed by knitr and be transformed into an HTML file.
+
 Throughout your report make sure you always include the code that you used to generate the output you present. When writing code chunks in the R markdown document, always use echo = TRUE so that someone else will be able to read the code. This assignment will be evaluated via peer assessment so it is essential that your peer evaluators be able to review the code for your analysis.
 
 **Loading and preprocessing the data**
@@ -29,18 +30,17 @@ require(ggplot2)
 require(data.table) 
 
 if(!file.exists("repdata-data-activity.zip")) {
-  temp <- tempfile()
-  download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", temp, method="curl")
-  file <- unzip(temp)
-  unlink(temp)}
+  url <- "http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+  download.file(url, "repdata-data-activity.zip", mode="wb")
+  file <- unzip("repdata-data-activity.zip")}
   file <- unzip("repdata-data-activity.zip")
   
 activity <- read.csv(file, header=TRUE)
 data <- activity
-
 ```
+
 Explore
-```{r message=TRUE}
+```{r echo=TRUE}
 names(data)
 head(data)
 str(data)
@@ -50,7 +50,7 @@ summary(data)
 
 ```
 Remove NAs from table
-```{r}
+```{r echo=TRUE}
 data2 <- data %>%
   filter(!is.na(steps))
 summary(data2)
@@ -59,7 +59,7 @@ barplot(data2$steps)
 
 **What is the mean number of steps taken per day?**
 To determine the mean number of steps per day the dataset is grouped by days with NA values removed, then the mean and median are taken from this dataset.
-``` {r}
+``` {r echo=TRUE}
 dateTotal <- data %>%
   filter(!is.na(steps)) %>%
   group_by(date) %>%
@@ -69,16 +69,16 @@ mean1 <- round(mean(dateTotal$steps), 0)
 median1 <- median(dateTotal$steps)
 ```
 Mean number of steps: 
-```{r}
+```{r echo=TRUE}
 mean1
 ```
 Median number of steps: 
-```{r}
+```{r echo=TRUE}
 median1
 ```
 
 Histogram of the total number of steps taken each day:
-```{r}
+```{r echo=TRUE}
 ggplot(dateTotal, aes(x = steps)) +
   geom_histogram(fill = "#3399FF", binwidth = 1000) +
   labs(title = "Distribution of Total Steps per Day with NA's Removed", 
@@ -86,13 +86,13 @@ ggplot(dateTotal, aes(x = steps)) +
 ```
 
 Difference between the mean and median 
-```{r}
+```{r echo=TRUE}
 mean1 - median1
 ```
 
 **What is the average daily activity pattern?**
 Below is a time series plot showing 5-minute interval on the x-axis with labels every hour and the average number of steps taken on the y-axis.
-``` {r}
+``` {r echo=TRUE}
 timeTotal <- data2 %>% 
               group_by(interval) %>%
               summarise(avg = mean(steps))
@@ -112,7 +112,7 @@ ggplot(timeTotalasNum, aes(x = interval, y = avg))+
   
 ```
 The 5 minute interval with the highest number of steps is number 835 which has approximently 10 more steps on average than the next closest interval which is number 840.
-```{r}
+```{r echo=TRUE}
 timeTotal %>%
   top_n(n=2)
 ```
@@ -121,12 +121,12 @@ timeTotal %>%
 This dataset includes a number of days/intervals where there are missing values (coded as NA). The presence of this missing days may introduce bias into some of the calculations or summaries of the data, so lets replace the missing values in the datset and compare it to our prevouis statistics to determine its impact.
 
 There is a total of 2304 intervals which are missing values in the data sets.
-```{r}
+```{r echo=TRUE}
 sum(is.na(data$steps))
 ```
 
 Let's replace the missing values in the dataset with the mean value for each given time period.
-```{r}
+```{r echo=TRUE}
 dt1<- data.table(data)
 dt2 <- data.table(timeTotal)
 dt1[is.na(steps), steps:= dt2[copy(.SD), avg, on="interval"]]
@@ -134,7 +134,7 @@ head(dt1)
 ```
 
 Then the steps per day are calculated and a histogram showing the total steps per day is generated.
-```{r}
+```{r echo=TRUE}
 dt3 <- dt1[, sum(steps), by = date]
 colnames(dt3)[2] <- "steps"
 mean2 <- round(mean(dt3$steps), 0)
@@ -147,7 +147,7 @@ ggplot(dt3, aes(x = steps)) +
 ```
 
 Finally, let's compare the two datasets in the table below to determine the difference between the mean and median with NA's included and with NA's replaced.  The difference between means is less than two tenths of a percent and the differnce between the meidans is just over one percent, so replacing the NAs in the dataset did not have much impact on these statistics.  
-```{r}
+```{r echo=TRUE}
 labels <- c("NA's included", "NAs replaced", "Difference")
 mean_diff <- paste(round(((mean1/mean2 - 1)*100), 2), "%", sep="")
 median_diff <- paste(round(((median1/median2 - 1)*100), 2),"%", sep="")
@@ -160,7 +160,7 @@ data.frame(labels, means, medians)
 
 **Is there differences in activity patterns between weekdays and weekends?**
 To determine the difference a new factor variable in the dataset is created with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
-```{r}
+```{r echo=TRUE}
 dt1$date<- as.Date(dt1$date)
 df4 <- mutate(dt1, weektype = ifelse(weekdays(date) == "Saturday" 
                                          | weekdays(date) == "Sunday", 
@@ -169,7 +169,7 @@ df4 <- mutate(dt1, weektype = ifelse(weekdays(date) == "Saturday"
 ```
 
 Then a panel plot is generated to show the compairson between the average number of steps taken, averaged across all weekday days and weekend days.  The plots below indicate that during the week the the mornings are very active, however during typical work hours (9am-5pm) activity is significantly reduced and picks up slightly during the evening hours.  On the weeknds, while there is activity in the mornings it is not as much as during the week, however the activity for the rest of the day appears to be higher than during the week.  
-```{r}
+```{r echo=TRUE}
 df5 <- df4 %>%
   group_by(interval, weektype) %>%
   summarise(steps = mean(steps))
