@@ -1,0 +1,208 @@
+---
+title: "Reproducible Research - Peer Assessment 1"
+author: "Phillip"
+date: "December 15, 2015"
+output: html_document
+---
+**Introduction**
+It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the “quantified self” movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
+This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
+
+**Data**
+The data for this assignment can be downloaded from the course web site:
+•  Dataset: Activity monitoring data [52K]
+The variables included in this dataset are:
+•	steps: Number of steps taking in a 5-minute interval (missing values are coded asNA)
+•	date: The date on which the measurement was taken in YYYY-MM-DD format
+•	interval: Identifier for the 5-minute interval in which measurement was taken
+The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
+
+**Assignment**
+This assignment will be described in multiple parts. You will need to write a report that answers the questions detailed below. Ultimately, you will need to complete the entire assignment in a single R markdown document that can be processed by knitr and be transformed into an HTML file.
+Throughout your report make sure you always include the code that you used to generate the output you present. When writing code chunks in the R markdown document, always use echo = TRUE so that someone else will be able to read the code. This assignment will be evaluated via peer assessment so it is essential that your peer evaluators be able to review the code for your analysis.
+
+**Loading and preprocessing the data**
+
+```{r, message=FALSE}
+require(dplyr)
+require(ggplot2)
+require(data.table) 
+
+if(!file.exists("repdata-data-activity.zip")) {
+  temp <- tempfile()
+  download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", temp)
+  file <- unzip(temp)
+  unlink(temp)}
+  file <- unzip("repdata-data-activity.zip")
+  
+activity <- read.csv(file, header=TRUE)
+data <- activity
+
+```
+Explore
+```{r}
+names(data)
+head(data)
+str(data)
+data$interval <- as.factor(data$interval)
+sum(is.na(data$steps))
+summary(data)
+
+```
+Remove NAs from table
+```{r}
+data2 <- data %>%
+  filter(!is.na(steps))
+summary(data2)
+barplot(data2$steps)
+```
+
+**What is the mean number of steps taken per day?**
+To determine the mean number of steps per day the dataset is grouped by days with NA values removed, then the mean and median are taken from this dataset.
+``` {r}
+dateTotal <- data %>%
+  filter(!is.na(steps)) %>%
+  group_by(date) %>%
+  summarize(steps = sum(steps))
+
+mean1 <- round(mean(dateTotal$steps), 0)
+median1 <- median(dateTotal$steps)
+```
+Mean number of steps: 
+```{r}
+mean1
+```
+Median number of steps: 
+```{r}
+median1
+```
+
+Histogram of the total number of steps taken each day:
+```{r}
+ggplot(dateTotal, aes(x = steps)) +
+  geom_histogram(fill = "#3399FF", binwidth = 1000) +
+  labs(title = "Distribution of Total Steps per Day with NA's Removed", 
+       x = "Total steps per day", y = "Frequency")
+```
+
+Difference between the mean and median 
+```{r}
+mean1 - median1
+```
+
+**What is the average daily activity pattern?**
+Below is a time series plot showing 5-minute interval on the x-axis with labels every hour and the average number of steps taken on the y-axis.
+``` {r}
+timeTotal <- data2 %>% 
+              group_by(interval) %>%
+              summarise(avg = mean(steps))
+head(timeTotal)
+
+# change timeTotal$interval to numeric so the x axis of the plot can be manipulated 
+timeTotalasNum <- timeTotal
+timeTotalasNum$interval <- as.numeric(timeTotalasNum$interval)
+
+ggplot(timeTotalasNum, aes(x = interval, y = avg))+
+  geom_line(aes(group=1), colour = "#3399FF") +     # Group all points; otherwise no line will show
+  scale_x_continuous(breaks=c(seq(from=0, to=288, by=12)),
+                     labels=c(seq(from=0, to=288, by=12))) +
+  geom_point(size=2) +
+  labs(title = "The Distribution of Total Steps per Time Interval", 
+       x = "Total steps per time interval", y = "Frequency")
+  
+```
+The 5 minute interval with the highest number of steps is number 835 which has approximently 10 more steps on average than the next closest interval which is number 840.
+```{r}
+timeTotal %>%
+  top_n(n=2)
+```
+
+**Imputing missing values**
+This dataset includes a number of days/intervals where there are missing values (coded as NA). The presence of this missing days may introduce bias into some of the calculations or summaries of the data, so lets replace the missing values in the datset and compare it to our prevouis statistics to determine its impact.
+
+There is a total of 2304 intervals which are missing values in the data sets.
+```{r}
+sum(is.na(data$steps))
+```
+
+Let's replace the missing values in the dataset with the mean value for each given time period.
+```{r}
+dt1<- data.table(data)
+dt2 <- data.table(timeTotal)
+dt1[is.na(steps), steps:= dt2[copy(.SD), avg, on="interval"]]
+head(dt1)
+```
+
+Then the steps per day are calculated and a histogram showing the total steps per day is generated.
+```{r}
+dt3 <- dt1[, sum(steps), by = date]
+colnames(dt3)[2] <- "steps"
+mean2 <- round(mean(dt3$steps), 0)
+median2 <- median(dt3$steps)
+
+ggplot(dt3, aes(x = steps)) +
+  geom_histogram(fill = "#3399FF", binwidth = 1000)+
+  labs(title = "Distribution of Total Steps per Day with NA's Removed", 
+       x = "Total steps per day", y = "Frequency")
+```
+
+Finally, let's compare the two datasets in the table below to determine the difference between the mean and median with NA's included and with NA's replaced.  The difference between means is less than two tenths of a percent and the differnce between the meidans is just over one percent, so replacing the NAs in the dataset did not have much impact on these statistics.  
+```{r}
+labels <- c("NA's included", "NAs replaced", "Difference")
+mean_diff <- paste(round(((mean1/mean2 - 1)*100), 2), "%", sep="")
+median_diff <- paste(round(((median1/median2 - 1)*100), 2),"%", sep="")
+means <- c(mean1, mean2, mean_diff)
+medians <- c(median1, median2, median_diff)
+comparison <- table(c(means, medians))
+
+data.frame(labels, means, medians)
+```
+
+**Is there differences in activity patterns between weekdays and weekends?**
+To determine the difference a new factor variable in the dataset is created with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+```{r}
+dt1$date<- as.Date(dt1$date)
+df4 <- mutate(dt1, weektype = ifelse(weekdays(date) == "Saturday" 
+                                         | weekdays(date) == "Sunday", 
+                                         "weekend", "weekday"))
+
+```
+
+Then a panel plot is generated to show the compairson between the average number of steps taken, averaged across all weekday days and weekend days.  The plots below indicate that during the week the the mornings are very active, however during typical work hours (9am-5pm) activity is significantly reduced and picks up slightly during the evening hours.  On the weeknds, while there is activity in the mornings it is not as much as during the week, however the activity for the rest of the day appears to be higher than during the week.  
+```{r}
+df5 <- df4 %>%
+  group_by(interval, weektype) %>%
+  summarise(steps = mean(steps))
+
+s <- ggplot(df5, aes(x = as.integer(interval), y = steps, color = weektype)) +
+      geom_line() +
+      facet_wrap(~weektype, ncol = 1, nrow=2) + 
+      scale_x_continuous(limits = c(0, 288),
+                         breaks = c(seq(from=0, to=288, by=12)),
+                         labels = c(seq(from=0, to=288, by=12))) +
+      labs(title = "Comparison of Mean Steps per Interval by Weekdays and Weekends",
+           x = "Interval", "Number of Steps", legend = "Weektype")
+print(s)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
